@@ -1,0 +1,12 @@
+{
+  "name": "tokenbrake",
+  "version": "1.0.0",
+  "description": "An in-memory, multi-tenant circuit breaker to mitigate LLM API runaway loops and cost spikes.",
+  "main": "src/index.js",
+  "scripts": {
+    "demo": "node examples/simulation.js"
+  },
+  "keywords": ["llm", "circuit-breaker", "rate-limiting", "api-guard", "openai", "claude"],
+  "author": "Aaditya Dabhadkar",
+  "license": "MIT"
+}
