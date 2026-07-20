@@ -34,9 +34,11 @@ Clone the repository and inject the core package components:
 git clone [https://github.com/imaadi-29/TokenBrake.git](https://github.com/imaadi-29/TokenBrake.git)
 cd TokenBrake
 npm install
+```
 
-2. Native Express.js Integration Example
+### 2. Native Express.js Integration Example
 Protect your active API production endpoints instantly inside your application script:
+```bash 
 const express = require('express');
 const TokenBrake = require('./src/index');
 
@@ -57,10 +59,13 @@ app.get('/api/v1/predict', (req, res) => {
 });
 
 app.listen(3000);
+``` 
 
-3. Running the Operational Server Simulation
+### 3. Running the Operational Server Simulation
 To verify the engine's hybrid isolation and containment system locally:
+```bash
 node examples/server.js
+```
 
 📊 Core Product Metrics (Telemetry Framework)
 Mitigation Velocity (North Star Metric): The delta (in milliseconds) between an anomalous threshold breach and complete pipeline shutdown (Performance: < 2ms).
