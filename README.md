@@ -1,64 +1,73 @@
 # 🚨 TokenBrake
 
-**An asymmetric, multi-tenant operational circuit breaker designed to intercept runaway LLM API loops and prevent catastrophic billing spikes.**
+**A high-performance, hybrid distributed circuit breaker designed to intercept runaway LLM API loops, protect multi-tenant pipelines, and eliminate catastrophic billing spikes.**
 
 ---
 
 ## 📦 The Problem
-Traditional rate limiters throttle users based on fixed windows to preserve server bandwidth. However, in the LLM era, a single asynchronous `while(true)` loop targeting OpenAI or Claude APIs can burn through thousands of dollars in token costs within minutes before standard billing alerts trigger. 
+In the LLM application layer, a single asynchronous `while(true)` loop targeting OpenAI or Claude APIs can burn through thousands of dollars in token costs within minutes before cloud billing alerts trigger. Traditional rate limiters throttle users based on rigid windows, often degrading global application performance.
 
-Existing observability tools require heavy architectural changes or introduce significant network latency. 
-
-**TokenBrake** solves this by operating as a zero-dependency, microsecond-latency local middleware that continuously monitors request velocity per tenant and automatically cuts the pipeline the instant an anomaly is detected.
+**TokenBrake** solves this by acting as a microsecond-latency middleware that continuously tracks request velocity per tenant. It operates natively in-memory for local workloads and seamlessly scales to a distributed backend across multiple clusters using atomic database transactions.
 
 ---
 
 ## ✨ Key Features
-*   **Isolated Multi-Tenant Scoping:** Utilizes a dynamic memory lookup matrix (`Map`) to isolate request histories. A runaway loop from an abusive user triggers a local lockdown without affecting legitimate concurrent users.
-*   **Zero-Dependency Footprint:** Built natively with zero external runtime dependencies to keep deployment sizes minimal and avoid third-party security vulnerabilities.
-*   **Instant Operational Alerting:** Bypasses passive dashboards to push interactive emergency cards directly to engineering Slack channels the exact millisecond a threshold is breached.
+*   **Hybrid Memory Architecture:** Smart engine auto-detects environment scaling. Operates using an ultra-fast local `Map` fallback or scales globally using a distributed database cluster.
+*   **Isolated Multi-Tenant Scoping:** Isolates request histories completely per tenant. An aggressive script anomaly from one user triggers an immediate local lockdown without impacting concurrent, healthy users.
+*   **Express.js Native Middleware:** Implements a single-line middleware wrapper (`app.use()`) to protect active web application routes seamlessly.
+*   **Instant Operational Alerting:** Bypasses passive monitoring dashboards to fire high-priority notification cards straight to engineering Slack channels the exact millisecond a threshold breach is contained.
 
 ---
 
 ## 🛠️ Tech Stack & Architecture Design Decisions
-*   **Runtime:** Node.js
-*   **Data Structures:** JavaScript `Map` for $O(1)$ constant-time lookup velocity, combined with a `Set` lockout mechanism to ensure duplicate alerting spam is completely suppressed during an ongoing incident.
-*   **Latency Over Persistence:** Data is maintained strictly in-memory. By intentionally avoiding database overhead for the MVP, the middleware evaluates traffic compliance in `<1ms`, ensuring zero noticeable latency overhead for the end-user application.
+*   **Runtime Environment:** Node.js / Express.js
+*   **Distributed Storage Engine:** Redis (`ioredis` client) utilizing an atomic **Sliding Window Log** algorithm via transactional pipelines (`ZSET`) to completely eliminate race conditions across distributed microservices.
+*   **Microsecond Latency:** Evaluates traffic state compliance in `<1ms`, ensuring zero structural latency overhead for standard application users.
 
 ---
 
-## 📊 Core Product Metrics (Telemetry Framework)
-1.  **Mitigation Velocity (North Star Metric):** The delta (in milliseconds) between a threshold breach and complete pipeline lockdown (MVP Performance: `< 2ms`).
-2.  **False Positive Rate:** Measuring legitimate burst traffic versus structural loop degradation to ensure valid users are never throttled during normal high-velocity usage.
+## 🚀 Rapid Deployment & Middleware Integration
 
----
-
-## 🚀 Step-by-Step Verification Demo
-
-### 1. Installation & Setup
-Clone the repository and install dependencies:
+### 1. Installation & Dependency Injection
+Clone the repository and inject the core package components:
 ```bash
-git clone https://github.com/YOUR_USERNAME/TokenBrake.git
+git clone [https://github.com/imaadi-29/TokenBrake.git](https://github.com/imaadi-29/TokenBrake.git)
 cd TokenBrake
 npm install
-```
 
-### 2. Configure Your Slack Alert Guardrail
-Open `examples/simulation.js` and input your live incoming Slack Webhook URL.
+2. Native Express.js Integration Example
+Protect your active API production endpoints instantly inside your application script:
+const express = require('express');
+const TokenBrake = require('./src/index');
 
-### 3. Run the Traffic Isolation Simulation
-```bash
-node examples/simulation.js
-```
+const app = express();
 
-**Expected Terminal Output Behavior:**
-*   `User B (Runaway Script)` spams requests every 200ms → Trips the threshold at Request #5 → Pipeline halts execution instantly → Slack alert is dispatched.
-*   `User A (Healthy App)` continues to process data smoothly in the background, proving complete resource isolation.
+const breaker = new TokenBrake({
+    maxRequests: 5,        // Max request tolerance limit
+    timeWindowMs: 5000,    // Sliding time window evaluation matrix
+    redisUrl: null,        // Pass URL to engage distributed mode; defaults to local memory
+    webhookUrl: "YOUR_SLACK_WEBHOOK_URL"
+});
 
----
+// Intercept all downstream routing pipelines safely
+app.use(breaker.middleware());
 
-## 📄 License
+app.get('/api/v1/predict', (req, res) => {
+    res.json({ success: true, data: "Secure LLM payload dispatched safely." });
+});
+
+app.listen(3000);
+
+3. Running the Operational Server Simulation
+To verify the engine's hybrid isolation and containment system locally:
+node examples/server.js
+
+📊 Core Product Metrics (Telemetry Framework)
+Mitigation Velocity (North Star Metric): The delta (in milliseconds) between an anomalous threshold breach and complete pipeline shutdown (Performance: < 2ms).
+
+False Positive Rate: Deep sliding window evaluation prevents accidental throttling during legitimate burst-traffic events under high usage.
+
+📄 License
 This project is licensed under the MIT License - see the package.json file for details.
 
----
-*Maintained by Aaditya Dabhadkar*
+Maintained by Aaditya Dabhadkar
