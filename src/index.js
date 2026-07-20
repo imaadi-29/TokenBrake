@@ -20,6 +20,39 @@ class TokenBrake {
         }
     }
 
+    // Expose structural telemetry state for visualization
+    async getTelemetryData() {
+        const data = {};
+        
+        if (this.redis) {
+            try {
+                // Fetch all tracked identity keys from Redis
+                const keys = await this.redis.keys('tokenbrake:scope:*');
+                for (const key of keys) {
+                    const identifier = key.replace('tokenbrake:scope:', '');
+                    const currentCount = await this.redis.zcard(key);
+                    data[identifier] = {
+                        count: currentCount,
+                        status: currentCount >= this.maxRequests ? 'TRIPPED' : 'HEALTHY'
+                    };
+                }
+            } catch (err) {
+                console.error("Telemetry fetch fallback:", err.message);
+            }
+        } else {
+            // Read from local memory Map
+            for (const [identifier, timestamps] of this.storage.entries()) {
+                const currentTime = Date.now();
+                const activeTimestamps = timestamps.filter(t => currentTime - t < this.timeWindowMs);
+                data[identifier] = {
+                    count: activeTimestamps.length,
+                    status: activeTimestamps.length >= this.maxRequests ? 'TRIPPED' : 'HEALTHY'
+                };
+            }
+        }
+        return data;
+    }
+
     // Core validation router
     async check(identifier) {
         const scopeKey = identifier || 'global_fallback';
