@@ -67,12 +67,12 @@ To verify the engine's hybrid isolation and containment system locally:
 node examples/server.js
 ```
 
-📊 Core Product Metrics (Telemetry Framework)
+### 📊 Core Product Metrics (Telemetry Framework)
 Mitigation Velocity (North Star Metric): The delta (in milliseconds) between an anomalous threshold breach and complete pipeline shutdown (Performance: < 2ms).
 
 False Positive Rate: Deep sliding window evaluation prevents accidental throttling during legitimate burst-traffic events under high usage.
 
-📄 License
+### 📄 License
 This project is licensed under the MIT License - see the package.json file for details.
 
 Maintained by Aaditya Dabhadkar
