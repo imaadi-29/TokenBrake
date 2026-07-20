@@ -6,7 +6,17 @@
   "scripts": {
     "demo": "node examples/simulation.js"
   },
-  "keywords": ["llm", "circuit-breaker", "rate-limiting", "api-guard", "openai", "claude"],
+  "keywords": [
+    "llm",
+    "circuit-breaker",
+    "rate-limiting",
+    "api-guard",
+    "openai",
+    "claude"
+  ],
   "author": "Aaditya Dabhadkar",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }

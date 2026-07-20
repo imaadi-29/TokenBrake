@@ -38,10 +38,31 @@ class TokenBrake {
         return true; 
     }
 
+    // NEW: Native Express Middleware Wrapper
+    middleware(options = {}) {
+        return (req, res, next) => {
+            // Automatically identify users by IP, or extract a custom API Token/User ID header
+            const identifier = options.extractIdentifier 
+                ? options.extractIdentifier(req) 
+                : (req.headers['x-user-id'] || req.ip);
+
+            const isAllowed = this.check(identifier);
+
+            if (!isAllowed) {
+                return res.status(429).json({
+                    success: false,
+                    error: "Too Many Requests",
+                    message: "API access temporarily frozen for this identifier due to unusual request velocity."
+                });
+            }
+
+            next();
+        };
+    }
+
     async sendSlackAlert(scopeKey, currentCount) {
-        // Simple, clean check: if a URL exists, we send it. No strings attached.
-        if (!this.webhookUrl) {
-            console.log(`⚠️ No Webhook URL configured. Skipping alert.`);
+        if (!this.webhookUrl || this.webhookUrl.includes("YOUR_SLACK_WEBHOOK_URL_HERE")) {
+            console.log(`🚨 [Alert Triggered] Circuit broken for [${scopeKey}]! (Slack Webhook skipped or unconfigured)`);
             return;
         }
 
@@ -49,7 +70,7 @@ class TokenBrake {
             text: `🚨 *TokenBrake Circuit Breaker Tripped!* 🚨\n` +
                   `*Target Scope:* \`${scopeKey}\`\n` +
                   `*Velocity Breach:* ${currentCount} requests inside ${this.timeWindowMs / 1000}s\n` +
-                  `*Action:* API Access Frozen for this scope.`
+                  `*Action:* HTTP 429 Protection Engaged.`
         };
 
         try {
